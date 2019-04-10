@@ -51,14 +51,55 @@ struct state getStateFromFile(char * file)
     return state;
 }
 
+struct state graphSearch(vector<state> statePath, struct state solution)
+{
+    //empty struct state -closed-
+    vector<state> closed;
+    // set fringe nodes into vector path
+    vector<state> fringe = statePath; //this probs don't work
+
+    //for loop < 5 (only 5 possible nodes)
+    while(true)
+    {
+        //if fringe is empty return 1
+        if(!fringe[0].lchickens) // null check
+            //node = get first node from fringe
+            struct state node = fringe[0];
+        //if Goal-Test([problem], node) return solution(node)
+        if(GoalTest(solution, node))
+            return Solution(node);
+
+        //if node !in closed
+        int closedSize = closed.size;
+        if(closed[closedSize-1] == node)
+        {
+            //add node to closed
+            closed.push_back(node);
+            //fringe <- insertall(EXPAND(node, problem), fringe)
+            fringe = InsertAll(Expand(node, solution), fringe)
+        }
+
+
+
+    }
+
+
+}
+
 int main (int argc, char *argv[]) 
 { 
     state initialState;
     vector<state> statePath;
     
+    // Get initial state from startState.txt file
     initialState = getStateFromFile(argv[1]);
+    // Set the initial state in the vector path
     statePath.push_back(initialState);
-    cout << statePath[0].rwolves;
-    
+    //cout << statePath[0].rwolves;
+
+    //look at last node
+    //find fringe (the children nodes)
+    //go to next node (depends on search type)
+    //
     return 0; 
 }
