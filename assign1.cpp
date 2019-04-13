@@ -51,9 +51,19 @@ struct state getStateFromFile(char * file)
     return state;
 }
 
+// Checks if Node is the Solution
 bool GoalTest(struct state solution, struct state node)
 {
-    return true; // Checks If Node is the Solution
+    if(solution.lchickens == node.lchickens)
+    {
+        if(solution.lwolves == node.lwolves)
+        { 
+            if(solution.lboat == node.lboat)
+            {
+                return true;
+            } else return false;
+        }
+    }
 }
 
 struct state Solution(struct state node)
@@ -75,10 +85,18 @@ struct state getParentNode(struct state node)
 vector<state> Expand(struct state node, struct state solution)
 {
     // successors < empty set
-    //for each action, result in SUCCESSOR-FN[problem(STATE[node])]
+    // for each action, result in SUCCESSOR-FN[problem(STATE[node])
+        // s = new node
+        // Parent-Node[s] = node
+        // Action[s] = action
+        // State[s] = result
+        // Path-Cost[s] = Path-Cast[node] + Step-Cost[node,action,s]
+        // Depth = Depth[node] + 1
+        // successors += s
+    // return successors
 }
 
-struct state graphSearch(vector<state> statePath, struct state solution)
+void graphSearch(vector<state> statePath, struct state solution)
 {
     //empty struct state -closed-
     vector<state> closed;
@@ -97,7 +115,7 @@ struct state graphSearch(vector<state> statePath, struct state solution)
         node = fringe[0];
         //if Goal-Test([problem], node) return solution(node)
         if(GoalTest(solution, node))
-            return Solution(node);
+            Solution(node);
 
         //if node !in closed
         int closedSize = closed.size;
@@ -114,13 +132,17 @@ struct state graphSearch(vector<state> statePath, struct state solution)
 int main (int argc, char *argv[]) 
 { 
     state initialState;
+    state solutionState;
     vector<state> statePath;
     
     // Get initial state from startState.txt file
     initialState = getStateFromFile(argv[1]);
+    solutionState = getStateFromFile(argv[2]);
     // Set the initial state in the vector path
     statePath.push_back(initialState);
     //cout << statePath[0].rwolves;
+    // Complete Search - eventually should run each different search type
+    graphSearch(statePath, solutionState);
 
     //look at last node
     //find fringe (the children nodes)
