@@ -27,7 +27,7 @@ struct Node
 {
     int rchickens, rwolves, rboat;
     int lchickens, lwolves, lboat;
-    struct Node* parentNode;
+    struct Node *parentNode;
     string action;
     int depth;
 };
@@ -156,169 +156,156 @@ vector<Node> Expand(struct Node node, struct Node problem)
     // if -1 wolf, w>c?
     // if -1 wolf & -1 chicken, w>c?
     // if -2 wolf, w>c?
-    {
-        // s = new node
-        struct Node s;
-        // Parent-Node[s] = node
-        s.parentNode = &node;
 
-        if(s.parentNode->rboat = 1)
+    // s = new node
+    struct Node s;
+    // Parent-Node[s] = node
+    s.parentNode = &node;
+
+    if (s.parentNode->rboat == 1)
+    { //trues means failure, false means good action
+        if (s.parentNode->rwolves < s.parentNode->rchickens - 1 && s.parentNode->lwolves < s.parentNode->lchickens + 1 && s.parentNode->rchickens - 1 >= 0)
         {
-            if(s.parentNode->rwolves > s.parentNode->rchickens-1 && s.parentNode->rchickens-1 >= 0)
-            {
-                if(s.parentNode->rwolves > s.parentNode->rchickens-2 && s.parentNode->rchickens-2 >= 0)
-                {
-                    if(s.parentNode->lwolves+1 < s.parentNode->lchickens && s.parentNode->rwolves-1 >= 0)
-                    {
-                        if(s.parentNode->lwolves+1 < s.parentNode->lchickens+1 && s.parentNode->rwolves-1 >= 0 && s.parentNode->rchickens-1 >= 0)
-                        {
-                            if(s.parentNode->lwolves+2 < s.parentNode->lchickens && s.parentNode->rwolves-2 >= 0)
-                            {
-                                cout << "SOMETHING WENT VERY WRONG IN EXPAND" << endl;
-                            } else 
-                            {
-                                s.lboat = 1;
-                                s.lchickens = s.parentNode->lchickens;
-                                s.lwolves = s.parentNode->lwolves + 2;
-                                s.rboat = 0;
-                                s.rchickens = s.parentNode->rchickens;
-                                s.rwolves = s.parentNode->rwolves - 2;
-                                
-                                s.action = "Moved ONE WOLF to the LEFT";
-                                cout << s.action << endl;
-                            }
-                        } else 
-                        {
-                            s.lboat = 1;
-                            s.lchickens = s.parentNode->lchickens + 1;
-                            s.lwolves = s.parentNode->lwolves + 1;
-                            s.rboat = 0;
-                            s.rchickens = s.parentNode->rchickens - 1;
-                            s.rwolves = s.parentNode->rwolves - 1;
-                            
-                            s.action = "Moved ONE WOLF and ONE CHICKEN to the LEFT";
-                            cout << s.action << endl;
-                        }
-                    } else 
-                    {
-                        s.lboat = 1;
-                        s.lchickens = s.parentNode->lchickens;
-                        s.lwolves = s.parentNode->lwolves + 1;
-                        s.rboat = 0;
-                        s.rchickens = s.parentNode->rchickens;
-                        s.rwolves = s.parentNode->rwolves - 1;
-                        
-                        s.action = "Moved ONE WOLF to the LEFT";
-                        cout << s.action << endl;
-                    }
-                } else 
-                {
-                    s.lboat = 1;
-                    s.lchickens = s.parentNode->lchickens + 2;
-                    s.lwolves = s.parentNode->lwolves;
-                    s.rboat = 0;
-                    s.rchickens = s.parentNode->rchickens - 2;
-                    s.rwolves = s.parentNode->rwolves;
-                
-                    s.action = "Moved TWO CHICKENS to the LEFT";
-                    cout << s.action << endl;
-                }
-            } else
-            {
-                s.lboat = 1;
-                s.lchickens = s.parentNode->lchickens + 1;
-                s.lwolves = s.parentNode->lwolves;
-                s.rboat = 0;
-                s.rchickens = s.parentNode->rchickens - 1;
-                s.rwolves = s.parentNode->rwolves;
-                
-                s.action = "Moved ONE CHICKEN to the LEFT";
-                cout << s.action << endl;
-            } 
+            s.lboat = 1;
+            s.lchickens = s.parentNode->lchickens + 1;
+            s.lwolves = s.parentNode->lwolves;
+            s.rboat = 0;
+            s.rchickens = s.parentNode->rchickens - 1;
+            s.rwolves = s.parentNode->rwolves;
 
-        } else {
-            if(s.parentNode->lwolves > s.parentNode->lchickens-1 && s.parentNode->lchickens-1 >= 0)
-            {
-                if(s.parentNode->lwolves > s.parentNode->lchickens-2 && s.parentNode->lchickens-2 >= 0)
-                {
-                    if(s.parentNode->rwolves+1 < s.parentNode->rchickens && s.parentNode->lwolves-1 >= 0)
-                    {
-                        if(s.parentNode->rwolves+1 < s.parentNode->rchickens+1 && s.parentNode->lwolves-1 >= 0 && s.parentNode->lchickens-1 >= 0)
-                        {
-                            if(s.parentNode->rwolves+2 < s.parentNode->rchickens && s.parentNode->lwolves-2 >= 0)
-                            {
-                                cout << "SOMETHING WENT VERY WRONG IN EXPAND()" << endl;
-                            } else 
-                            {
-                                s.lboat = 0;
-                                s.lchickens = s.parentNode->lchickens;
-                                s.lwolves = s.parentNode->lwolves - 2;
-                                s.rboat = 1;
-                                s.rchickens = s.parentNode->rchickens;
-                                s.rwolves = s.parentNode->rwolves + 2;
-                                
-                                s.action = "Moved ONE WOLF to the RIGHT";
-                                cout << s.action << endl;
-                            }
-                        } else 
-                        {
-                            s.lboat = 0;
-                            s.lchickens = s.parentNode->lchickens - 1;
-                            s.lwolves = s.parentNode->lwolves - 1;
-                            s.rboat = 1;
-                            s.rchickens = s.parentNode->rchickens + 1;
-                            s.rwolves = s.parentNode->rwolves + 1;
-                            
-                            s.action = "Moved ONE WOLF and ONE CHICKEN to the RIGHT";
-                            cout << s.action << endl;
-                        }
-                    } else 
-                    {
-                        s.lboat = 0;
-                        s.lchickens = s.parentNode->lchickens;
-                        s.lwolves = s.parentNode->lwolves - 1;
-                        s.rboat = 1;
-                        s.rchickens = s.parentNode->rchickens;
-                        s.rwolves = s.parentNode->rwolves + 1;
-                        
-                        s.action = "Moved ONE WOLF to the RIGHT";
-                        cout << s.action << endl;
-                    }
-                } else 
-                {
-                    s.lboat = 0;
-                    s.lchickens = s.parentNode->lchickens - 2;
-                    s.lwolves = s.parentNode->lwolves;
-                    s.rboat = 1;
-                    s.rchickens = s.parentNode->rchickens + 2;
-                    s.rwolves = s.parentNode->rwolves;
-                
-                    s.action = "Moved TWO CHICKENS to the RIGHT";
-                    cout << s.action << endl;
-                }
-            } else
-            {
-                s.lboat = 0;
-                s.lchickens = s.parentNode->lchickens - 1;
-                s.lwolves = s.parentNode->lwolves;
-                s.rboat = 1;
-                s.rchickens = s.parentNode->rchickens + 1;
-                s.rwolves = s.parentNode->rwolves;
-                
-                s.action = "Moved ONE CHICKEN to the RIGHT";
-                cout << s.action << endl;
-            }
+            s.action = "Moved ONE CHICKEN to the LEFT";
+            successors.push_back(s);
+            //cout << s.action << endl;
         }
+        if (s.parentNode->rwolves < s.parentNode->rchickens - 2 && s.parentNode->lwolves < s.parentNode->lchickens + 2 && s.parentNode->rchickens - 2 >= 0)
+        {
+            s.lboat = 1;
+            s.lchickens = s.parentNode->lchickens + 2;
+            s.lwolves = s.parentNode->lwolves;
+            s.rboat = 0;
+            s.rchickens = s.parentNode->rchickens - 2;
+            s.rwolves = s.parentNode->rwolves;
 
-        
+            s.action = "Moved TWO CHICKENS to the LEFT";
+            successors.push_back(s);
+            //cout << s.action << endl;
+        }
+        if (s.parentNode->lwolves + 1 < s.parentNode->lchickens && s.parentNode->rwolves - 1 >= 0)
+        {
+            s.lboat = 1;
+            s.lchickens = s.parentNode->lchickens;
+            s.lwolves = s.parentNode->lwolves + 1;
+            s.rboat = 0;
+            s.rchickens = s.parentNode->rchickens;
+            s.rwolves = s.parentNode->rwolves - 1;
+
+            s.action = "Moved ONE WOLF to the LEFT";
+            successors.push_back(s);
+            //cout << s.action << endl;
+        }
+        if (s.parentNode->lwolves + 1 < s.parentNode->lchickens + 1 && s.parentNode->rwolves - 1 >= 0 && s.parentNode->rchickens - 1 >= 0)
+        {
+            s.lboat = 1;
+            s.lchickens = s.parentNode->lchickens + 1;
+            s.lwolves = s.parentNode->lwolves + 1;
+            s.rboat = 0;
+            s.rchickens = s.parentNode->rchickens - 1;
+            s.rwolves = s.parentNode->rwolves - 1;
+
+            s.action = "Moved ONE WOLF and ONE CHICKEN to the LEFT";
+            successors.push_back(s);
+            //cout << s.action << endl;
+        }
+        if (s.parentNode->lwolves + 2 < s.parentNode->lchickens && s.parentNode->rwolves - 2 >= 0)
+        {
+            s.lboat = 1;
+            s.lchickens = s.parentNode->lchickens;
+            s.lwolves = s.parentNode->lwolves + 2;
+            s.rboat = 0;
+            s.rchickens = s.parentNode->rchickens;
+            s.rwolves = s.parentNode->rwolves - 2;
+
+            s.action = "Moved TWO WOLVES to the LEFT";
+            successors.push_back(s);
+            //cout << s.action << endl;
+        }
+    }
+    else
+    {
+        if (s.parentNode->lwolves < s.parentNode->lchickens - 1 && s.parentNode->rwolves < s.parentNode->rchickens + 1 && s.parentNode->lchickens - 1 >= 0)
+        {
+            s.lboat = 0;
+            s.lchickens = s.parentNode->lchickens - 1;
+            s.lwolves = s.parentNode->lwolves;
+            s.rboat = 1;
+            s.rchickens = s.parentNode->rchickens + 1;
+            s.rwolves = s.parentNode->rwolves;
+
+            s.action = "Moved ONE CHICKEN to the RIGHT";
+            successors.push_back(s);
+            //cout << s.action << endl;
+        }
+        if (s.parentNode->lwolves < s.parentNode->lchickens - 2 && s.parentNode->rwolves < s.parentNode->rchickens + 2 && s.parentNode->lchickens - 2 >= 0)
+        {
+            s.lboat = 0;
+            s.lchickens = s.parentNode->lchickens - 2;
+            s.lwolves = s.parentNode->lwolves;
+            s.rboat = 1;
+            s.rchickens = s.parentNode->rchickens + 2;
+            s.rwolves = s.parentNode->rwolves;
+
+            s.action = "Moved TWO CHICKENS to the RIGHT";
+            successors.push_back(s);
+            //cout << s.action << endl;
+        }
+        if (s.parentNode->rwolves + 1 < s.parentNode->rchickens && s.parentNode->lwolves - 1 >= 0)
+        {
+            s.lboat = 0;
+            s.lchickens = s.parentNode->lchickens;
+            s.lwolves = s.parentNode->lwolves - 1;
+            s.rboat = 1;
+            s.rchickens = s.parentNode->rchickens;
+            s.rwolves = s.parentNode->rwolves + 1;
+
+            s.action = "Moved ONE WOLF to the RIGHT";
+            successors.push_back(s);
+            //cout << s.action << endl;
+        }
+        if (s.parentNode->rwolves + 1 < s.parentNode->rchickens + 1 && s.parentNode->lwolves - 1 >= 0 && s.parentNode->lchickens - 1 >= 0)
+        {
+            s.lboat = 0;
+            s.lchickens = s.parentNode->lchickens - 1;
+            s.lwolves = s.parentNode->lwolves - 1;
+            s.rboat = 1;
+            s.rchickens = s.parentNode->rchickens + 1;
+            s.rwolves = s.parentNode->rwolves + 1;
+
+            s.action = "Moved ONE WOLF and ONE CHICKEN to the RIGHT";
+            successors.push_back(s);
+            //cout << s.action << endl;
+        }
+        if (s.parentNode->rwolves + 2 > s.parentNode->rchickens && s.parentNode->lwolves - 2 >= 0)
+        {
+            s.lboat = 0;
+            s.lchickens = s.parentNode->lchickens;
+            s.lwolves = s.parentNode->lwolves - 2;
+            s.rboat = 1;
+            s.rchickens = s.parentNode->rchickens;
+            s.rwolves = s.parentNode->rwolves + 2;
+
+            s.action = "Moved TWO WOLVES to the RIGHT";
+            successors.push_back(s);
+            //cout << s.action << endl;
+        }
         // Path-Cost[s] = Path-Cast[node] + Step-Cost[node,action,s]
         // NO PATH COST FOR THESE SEARCH ALGOS
-
         // Depth = Depth[node] + 1
         s.depth = node.depth + 1;
-        successors.push_back(s);
         // successors += s
     }
+
+    cout << "successors #: " << successors.size() << endl;
+
     // return successors
     return successors;
 }
@@ -412,33 +399,38 @@ void graphSearch(struct Node problem, struct Node solution, SearchType searchTyp
 
         cout << "NODE: lc: " << node.lchickens << ", lw: " << node.lwolves << ", lb: " << node.lboat << endl;
         cout << "NODE: rc: " << node.rchickens << ", rw: " << node.rwolves << ", rb: " << node.rboat << endl;
-        
+
         //if Goal-Test([problem], node) return solution(node)
-        if (GoalTest(solution, node)) { Solution(node); break; }
+        if (GoalTest(solution, node))
+        {
+            Solution(node);
+            break;
+        }
 
         //if node !in closed
         int closedSize = closed.size();
         cout << "closedSize: " << closedSize << endl;
-        if(closedSize != 0)
+        if (closedSize != 0)
         {
-            for(int i = 0; i < closedSize; i++)
+            for (int i = 0; i < closedSize; i++)
             {
-                if(closed[i].lwolves != node.lwolves && closed[i].lchickens != node.lchickens /*&& closed[i].lboat != node.lboat*/)
-                {
-                    //add node to closed
-                    closed.push_back(node);
-
-                    cout << "CLOSED: lc: " << closed[i].lchickens << ", lw: " << closed[i].lwolves << ", lb: " << closed[i].lboat << endl;
-                    cout << "CLOSED: rc: " << closed[i].rchickens << ", rw: " << closed[i].rwolves << ", rb: " << closed[i].rboat << endl;
-
-                    //fringe <- insertall(EXPAND(node, problem), fringe)
-                    fringe = InsertAll(Expand(node, problem), fringe);       
-                } else 
+                if ((closed[i].lwolves == node.lwolves && closed[i].lchickens == node.lchickens) && closed[i].lboat == node.lboat)
                 {
                     cout << "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
                 }
+                else
+                {
+                    //add node to closed
+                    closed.push_back(node);
+                    //cout << "CLOSED: lc: " << node.lchickens << ", lw: " << node.lwolves << ", lb: " << node.lboat << endl;
+                    //cout << "CLOSED: rc: " << node.rchickens << ", rw: " << node.rwolves << ", rb: " << node.rboat << endl;
+                    //fringe <- insertall(EXPAND(node, problem), fringe)
+                    fringe = InsertAll(Expand(node, problem), fringe);
+                    break;
+                }
             }
-        } else 
+        }
+        else
         {
             closed.push_back(node);
 
