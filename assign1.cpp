@@ -4,6 +4,8 @@
 #include <vector>
 #include <sstream>
 
+//MAKE : MinGW32-make
+//MAKE RUN : MinGW32-make dfs
 //COMPILE : g++ -o assign1 assign1.cpp 
 //COMPILE ADD ON MY DESKTOP : -static-libstdc++ -static-libgcc
 //RUN     : assign1 startState.txt goalState.txt bfs finishedState.txt
