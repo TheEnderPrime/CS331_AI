@@ -4,8 +4,9 @@
 #include <vector>
 #include <sstream>
 
-//COMPILE : g++ -o assign1 assign1.cpp -static-libstdc++ -static-libgcc
-//RUN     : assign1 startState.txt goalState.txt --MODE-- finishedState.txt
+//COMPILE : g++ -o assign1 assign1.cpp 
+//COMPILE ADD ON MY DESKTOP : -static-libstdc++ -static-libgcc
+//RUN     : assign1 startState.txt goalState.txt bfs finishedState.txt
 
 // L [C,W,B]
 // R [C,W,B]
@@ -21,6 +22,18 @@
 // 1w <
 // 2w >
 
+// on side with boat
+    // if -1 chicken, w>c?
+    // if -2 chicken, w>c (on either side?)? if not send across
+    // if -1 wolf, w>c?
+    // if -1 wolf & -1 chicken, w>c?
+    // if -2 wolf, w>c?
+
+    //for l->r and then again for r->l
+    // l w <= c
+    // w >= 0
+    // (r w <= c) || c = 0
+
 using namespace std;
 
 struct Node
@@ -28,6 +41,7 @@ struct Node
     int rchickens, rwolves, rboat;
     int lchickens, lwolves, lboat;
     struct Node *parentNode;
+    int parentIterator;
     string action;
     int depth;
 };
@@ -35,19 +49,20 @@ struct Node
 enum SearchType
 {
     bfs,
-    dfs,
+    dfs ,
     iddfs,
-    astar
+    astar,
+    error
 };
 
 void printNode(struct Node node, string functionName)
 {
-    //cout << functionName << " NODE: lc: " << node.lchickens << ", lw: " << node.lwolves << ", lb: " << node.lboat << endl;
-    //cout << functionName << " NODE: rc: " << node.rchickens << ", rw: " << node.rwolves << ", rb: " << node.rboat << endl;
+    cout << functionName << "lc: " << node.lchickens << ", lw: " << node.lwolves << ", lb: " << node.lboat << endl;
+    cout << functionName << "rc: " << node.rchickens << ", rw: " << node.rwolves << ", rb: " << node.rboat << endl;
 }
 
 struct Node getStateFromFile(char *file)
-{//cout << "getStateFromFile" << endl;
+{
     struct Node state;
     fstream startStateFile;
 
@@ -78,6 +93,23 @@ struct Node getStateFromFile(char *file)
     state.rboat = arr[5];
 
     return state;
+}
+
+SearchType getEnumValue(string searchTypeString)
+{
+    if(searchTypeString == "bfs")
+    {
+        return bfs;
+    } else if(searchTypeString == "dfs")
+    {
+        return dfs;
+    } else if(searchTypeString == "iddfs")
+    {
+        return iddfs;
+    } else if(searchTypeString == "astar")
+    {
+        return astar;
+    } else return error;
 }
 
 // Checks if Node is the Solution
@@ -128,32 +160,42 @@ bool GoalTest(struct Node solution, struct Node node)
     }
 }
 
-void Solution(struct Node node)
+void Solution(struct Node node, vector<Node> closed, struct Node problem, char *outputFile)
 {
     cout << "SOLUTION FOUND! " << endl; //Prints out the solution and pathway to it
-    while(true)
+
+    ofstream myfile;
+    myfile.open (outputFile);
+     
+    while(!GoalTest(closed[0], node))
     {
-        cout << " NODE: lc: " << node.parentNode->lchickens << ", lw: " << node.parentNode->lwolves << ", lb: " << node.parentNode->lboat << endl;
-        cout << " NODE: rc: " << node.parentNode->rchickens << ", rw: " << node.parentNode->rwolves << ", rb: " << node.parentNode->rboat << endl;
-        cout << " NODE: action: " << node.action << " at depth " << node.depth << &node.parentNode->parentNode << endl;
+        myfile << "lc: " << node.lchickens << ", lw: " << node.lwolves << ", lb: " << node.lboat << endl;
+        myfile << "rc: " << node.rchickens << ", rw: " << node.rwolves << ", rb: " << node.rboat << endl;
+        myfile << node.action << " at Depth " << node.depth << endl;
 
-        node.lchickens = node.parentNode->lchickens;
-        node.lwolves = node.parentNode->lwolves;
-        node.lboat = node.parentNode->lboat;
-        node.rchickens = node.parentNode->rchickens;
-        node.rwolves = node.parentNode->rwolves;
-        node.rboat = node.parentNode->rboat;
-        node.action = node.parentNode->action;
-        node.depth = node.parentNode->depth;
-        node.parentNode = node.parentNode->parentNode;
-
-        if(node.parentNode) break;
+        //cout << "lc: " << node.lchickens << ", lw: " << node.lwolves << ", lb: " << node.lboat << endl;
+        //cout << "rc: " << node.rchickens << ", rw: " << node.rwolves << ", rb: " << node.rboat << endl;
+        cout << node.action << " at Depth " << node.depth << endl;
+        
+        node = closed[node.parentIterator];
     }
-}
+    
+    myfile << "lc: " << problem.lchickens << ", lw: " << problem.lwolves << ", lb: " << problem.lboat << endl;
+    myfile << "rc: " << problem.rchickens << ", rw: " << problem.rwolves << ", rb: " << problem.rboat << endl;
+    myfile << "Creation at Depth 0" << endl;
+    myfile << "Initial Node" << endl << endl;
+    
+    myfile << "Nodes Expanded: " << closed.size() << endl << endl;
 
-struct Node getParentNode(struct Node node)
-{//cout << "getParentNode" << endl;
-    return *node.parentNode;
+    myfile.close();
+
+    //cout << "lc: " << problem.lchickens << ", lw: " << problem.lwolves << ", lb: " << problem.lboat << endl;
+    //cout << "rc: " << problem.rchickens << ", rw: " << problem.rwolves << ", rb: " << problem.rboat << endl;
+    cout << "Creation at Depth 0" << endl;
+    cout << "Inital Node" << endl << endl;
+    
+    cout << "Nodes Expanded: " << closed.size() << endl << endl;
+
 }
 
 bool isClosed(struct Node node, vector<Node> closed)
@@ -170,23 +212,14 @@ bool isClosed(struct Node node, vector<Node> closed)
 
 //Expands the current node to find the next fringe
 vector<Node> Expand(struct Node node, struct Node problem, struct Node solution, vector<Node> closed)
-{//cout << "Expand" << endl;
+{
     vector<Node> successors;
-    // on side with boat
-    // if -1 chicken, w>c?
-    // if -2 chicken, w>c (on either side?)? if not send across
-    // if -1 wolf, w>c?
-    // if -1 wolf & -1 chicken, w>c?
-    // if -2 wolf, w>c?
-
-    //for l->r and then again for r->l
-    // l w <= c
-    // w >= 0
-    // (r w <= c) || c = 0
 
     struct Node s;
+
     // Parent-Node[s] = node
-    s.parentNode = &node;
+    s.parentIterator = closed.size() - 1;
+    s.parentNode = &closed[s.parentIterator];
 
     if (s.parentNode->rboat == 1)
     { //trues means failure, false means good action
@@ -200,6 +233,8 @@ vector<Node> Expand(struct Node node, struct Node problem, struct Node solution,
             s.rboat = 0;
             s.rchickens = s.parentNode->rchickens - 1;
             s.rwolves = s.parentNode->rwolves;
+            // Depth = Depth[node] + 1
+            s.depth = s.parentNode->depth + 1;
 
             s.action = "Moved ONE CHICKEN to the LEFT";
             if(!isClosed(s, closed))
@@ -216,6 +251,8 @@ vector<Node> Expand(struct Node node, struct Node problem, struct Node solution,
             s.rboat = 0;
             s.rchickens = s.parentNode->rchickens - 2;
             s.rwolves = s.parentNode->rwolves;
+            // Depth = Depth[node] + 1
+            s.depth = s.parentNode->depth + 1;
 
             s.action = "Moved TWO CHICKENS to the LEFT";
             {
@@ -231,7 +268,9 @@ vector<Node> Expand(struct Node node, struct Node problem, struct Node solution,
             s.rboat = 0;
             s.rchickens = s.parentNode->rchickens;
             s.rwolves = s.parentNode->rwolves - 1;
-
+            // Depth = Depth[node] + 1
+            s.depth = s.parentNode->depth + 1;
+            
             s.action = "Moved ONE WOLF to the LEFT";
             if(!isClosed(s, closed))
             {
@@ -247,6 +286,8 @@ vector<Node> Expand(struct Node node, struct Node problem, struct Node solution,
             s.rboat = 0;
             s.rchickens = s.parentNode->rchickens - 1;
             s.rwolves = s.parentNode->rwolves - 1;
+            // Depth = Depth[node] + 1
+            s.depth = s.parentNode->depth + 1;
 
             s.action = "Moved ONE WOLF and ONE CHICKEN to the LEFT";
             if(!isClosed(s, closed))
@@ -263,6 +304,8 @@ vector<Node> Expand(struct Node node, struct Node problem, struct Node solution,
             s.rboat = 0;
             s.rchickens = s.parentNode->rchickens;
             s.rwolves = s.parentNode->rwolves - 2;
+            // Depth = Depth[node] + 1
+            s.depth = s.parentNode->depth + 1;
 
             s.action = "Moved TWO WOLVES to the LEFT";
             if(!isClosed(s, closed))
@@ -282,6 +325,8 @@ vector<Node> Expand(struct Node node, struct Node problem, struct Node solution,
             s.rboat = 1;
             s.rchickens = s.parentNode->rchickens + 1;
             s.rwolves = s.parentNode->rwolves;
+            // Depth = Depth[node] + 1
+            s.depth = s.parentNode->depth + 1;
 
             s.action = "Moved ONE CHICKEN to the RIGHT";
             if(!isClosed(s, closed))
@@ -298,6 +343,8 @@ vector<Node> Expand(struct Node node, struct Node problem, struct Node solution,
             s.rboat = 1;
             s.rchickens = s.parentNode->rchickens + 2;
             s.rwolves = s.parentNode->rwolves;
+            // Depth = Depth[node] + 1
+            s.depth = s.parentNode->depth + 1;
 
             s.action = "Moved TWO CHICKENS to the RIGHT";
             if(!isClosed(s, closed))
@@ -314,6 +361,8 @@ vector<Node> Expand(struct Node node, struct Node problem, struct Node solution,
             s.rboat = 1;
             s.rchickens = s.parentNode->rchickens;
             s.rwolves = s.parentNode->rwolves + 1;
+            // Depth = Depth[node] + 1
+            s.depth = s.parentNode->depth + 1;
 
             s.action = "Moved ONE WOLF to the RIGHT";
             if(!isClosed(s, closed))
@@ -330,6 +379,7 @@ vector<Node> Expand(struct Node node, struct Node problem, struct Node solution,
             s.rboat = 1;
             s.rchickens = s.parentNode->rchickens + 1;
             s.rwolves = s.parentNode->rwolves + 1;
+            s.depth = s.parentNode->depth + 1;
 
             s.action = "Moved ONE WOLF and ONE CHICKEN to the RIGHT";
             if(!isClosed(s, closed))
@@ -346,6 +396,7 @@ vector<Node> Expand(struct Node node, struct Node problem, struct Node solution,
             s.rboat = 1;
             s.rchickens = s.parentNode->rchickens;
             s.rwolves = s.parentNode->rwolves + 2;
+            s.depth = s.parentNode->depth + 1;
 
             s.action = "Moved TWO WOLVES to the RIGHT";
             if(!isClosed(s, closed))
@@ -356,28 +407,36 @@ vector<Node> Expand(struct Node node, struct Node problem, struct Node solution,
         }
         // Path-Cost[s] = Path-Cast[node] + Step-Cost[node,action,s]
         // NO PATH COST FOR THESE SEARCH ALGOS
-        // Depth = Depth[node] + 1
-        s.depth = node.depth + 1;
     }
     //cout << "successors size: " << successors.size() << endl;
     // return successors
     return successors;
 }
 
-vector<Node> InsertAll(vector<Node> expandedNode, vector<Node> fringe)
-{//cout << "Insert All" << endl;
-    //cout << "fringeSize: " << fringe.size() << endl;
+vector<Node> InsertAll(vector<Node> expandedNode, vector<Node> fringe, SearchType searchType)
+{
     //Inserts the next fringe from the current node into the main vector pathway
-    for(int i = 0; i < expandedNode.size(); i++)
+    if(searchType == bfs)
     {
-        fringe.push_back(expandedNode[i]);
+        for(int i = 0; i < expandedNode.size(); i++)
+        {
+            fringe.push_back(expandedNode[i]);
+        }
     }
-    //cout << "fringeSize: " << fringe.size() << endl << endl << endl;
+
+    if(searchType == dfs || searchType == iddfs)
+    {
+        for(int i = 0; i < expandedNode.size(); i++)
+        {
+            fringe.insert(fringe.begin(), expandedNode[i]);
+        }
+    }
+
     return fringe;
 }
 
 vector<Node> setInitialFringe(struct Node initialState)
-{//cout << "InitialFringe" << endl;
+{
     vector<Node> initialFringe;
 
     initialFringe.push_back(Node());
@@ -393,66 +452,60 @@ vector<Node> setInitialFringe(struct Node initialState)
     return initialFringe;
 }
 
-struct Node getNextNode(vector<Node> fringe, SearchType searchType)
-{//cout << "getNextNode" << endl;
-    if (searchType == bfs)
-    {
-        return fringe[0];
-    }
-    else
-        cout << "getNextNode ERROR" << endl;
-}
-
-void graphSearch(struct Node problem, struct Node solution, SearchType searchType)
-{//cout << "GraphSearch" << endl;
-    //empty struct Node that remembers all the nodes
+void graphSearch(struct Node problem, struct Node solution, SearchType searchType, char *outputFile)
+{
+    //empty struct Node that remembers all the nodes ever touched
     vector<Node> closed;
     // insert the initial state or node to fringe
     vector<Node> fringe = setInitialFringe(problem);
 
+    int currentDepth = 0;
+    int iterativeDepth = 0;
+    int maxIterativeDepth = 1400;
+
     while (true)
     {
+        //resets for each iterative depth loop DURING IDDFS
+        if(currentDepth == iterativeDepth && searchType == iddfs)
+        {
+            closed.erase(closed.begin(), closed.end());
+            fringe.erase(fringe.begin(), fringe.end());
+            fringe = setInitialFringe(problem);
+            currentDepth = 0;
+            iterativeDepth += 1;
+            cout << "IDDFS RESET - New IterativeDepth: " << iterativeDepth << endl;
+        }
+
         struct Node node;
-        // this checks if the loop is at the end and the solution was not found
         if (fringe.empty()) // null check
         {
             cout << "Failure" << endl;
             break;
         }
-        //node = get first node from fringe // I THINK THIS IS WHERE WE CHANGE THE ALGO FOR SEARCH TYPES
-        node = getNextNode(fringe, searchType);
-        printNode(node, "GraphSearch");
 
-        //if Goal-Test([problem], node) return solution(node)
+        node = fringe[0]; // Get Next Node
+
         if (GoalTest(solution, node)) 
         {
-            Solution(node);
+            Solution(node, closed, problem, outputFile);
             break;
         }
 
-        //if node !in closed
         int closedSize = closed.size();
-        //cout << "closedSize: " << closedSize << endl;
         if (closedSize != 0)
         {
             for (int i = 0; i < closedSize; i++)
             {
                 if ((closed[i].lwolves == node.lwolves && closed[i].lchickens == node.lchickens) && closed[i].lboat == node.lboat)
                 {
-                    cout << "Closed Contains Node Already" << endl;
+                    cout << "Closed[] Contains Node Already" << endl;
                 } else 
                 {
-                    //add node to closed
                     closed.push_back(node);
                     
-                    //printNode(node, "NOW CLOSED");
-                    
                     fringe.erase(fringe.begin());
-                    fringe = InsertAll(Expand(node, problem, solution, closed), fringe);
-                    /*for(int i = 0; i < fringe.size(); i++)
-                    {
-                        printNode(fringe[i], ("fringe[]"));
-                    }*/
+                    fringe = InsertAll(Expand(node, problem, solution, closed), fringe, searchType);
+                    currentDepth += 1;
                     break;
                 }
             }
@@ -460,14 +513,9 @@ void graphSearch(struct Node problem, struct Node solution, SearchType searchTyp
         {
             closed.push_back(node);
 
-            //printNode(node, "FIRST CLOSED");
-
             fringe.erase(fringe.begin());
-            fringe = InsertAll(Expand(node, problem, solution, closed), fringe);
-            /*for(int i = 0; i < fringe.size(); i++)
-            {
-                printNode(fringe[i], ("initial fringe[]"));
-            }*/
+            fringe = InsertAll(Expand(node, problem, solution, closed), fringe, searchType);
+            currentDepth += 1;
         }
     }
 }
@@ -477,17 +525,24 @@ int main(int argc, char *argv[])
     cout << "Assignment 1 - baughd" << endl;
     Node initialState;
     Node solutionState;
+    string searchTypeString;
+    SearchType searchType;
+    char *outputFile;
     vector<Node> statePath;
 
     // Get initial state from startState.txt file
     initialState = getStateFromFile(argv[1]);
     solutionState = getStateFromFile(argv[2]);
+    searchTypeString = argv[3];
+    searchType = getEnumValue(searchTypeString);
+
+    outputFile = argv[4];
 
     // Set the initial state in the vector path
     statePath.push_back(initialState);
 
     // Complete Search - eventually should run each different search type
-    graphSearch(initialState, solutionState, bfs);
+    graphSearch(initialState, solutionState, searchType, outputFile);
 
     cout << "Done" << endl;
 
