@@ -40,16 +40,14 @@ enum SearchType
     astar
 };
 
-void printNode(struct Node node)
+void printNode(struct Node node, string functionName)
 {
-    cout << "printNode" << endl;
-    cout << "NODE: lc: " << node.lchickens << ", lw: " << node.lwolves << ", lb: " << node.lboat << endl;
-    cout << "NODE: rc: " << node.rchickens << ", rw: " << node.rwolves << ", rb: " << node.rboat << endl;
+    //cout << functionName << " NODE: lc: " << node.lchickens << ", lw: " << node.lwolves << ", lb: " << node.lboat << endl;
+    //cout << functionName << " NODE: rc: " << node.rchickens << ", rw: " << node.rwolves << ", rb: " << node.rboat << endl;
 }
 
 struct Node getStateFromFile(char *file)
-{
-    cout << "getStateFromFile" << endl;
+{//cout << "getStateFromFile" << endl;
     struct Node state;
     fstream startStateFile;
 
@@ -97,62 +95,82 @@ bool GoalTest(struct Node solution, struct Node node)
                     {
                         if (solution.rboat == node.rboat)
                         {
-                            cout << "GoalTest: true" << endl;
                             return true;
                         }
                         else
                         {
-                            cout << "GoalTest: false" << endl;
                             return false;
                         }
                     }
                     else
                     {
-                        cout << "GoalTest: false" << endl;
                         return false;
                     }
                 }
                 else
                 {
-                    cout << "GoalTest: false" << endl;
                     return false;
                 }
             }
             else
             {
-                cout << "GoalTest: false" << endl;
                 return false;
             }
         }
         else
         {
-            cout << "GoalTest: false" << endl;
             return false;
         }
     }
     else
     {
-        cout << "GoalTest: false" << endl;
         return false;
     }
 }
 
 void Solution(struct Node node)
 {
-    cout << "Solution" << endl;
     cout << "SOLUTION FOUND! " << endl; //Prints out the solution and pathway to it
+    while(true)
+    {
+        cout << " NODE: lc: " << node.parentNode->lchickens << ", lw: " << node.parentNode->lwolves << ", lb: " << node.parentNode->lboat << endl;
+        cout << " NODE: rc: " << node.parentNode->rchickens << ", rw: " << node.parentNode->rwolves << ", rb: " << node.parentNode->rboat << endl;
+        cout << " NODE: action: " << node.action << " at depth " << node.depth << &node.parentNode->parentNode << endl;
+
+        node.lchickens = node.parentNode->lchickens;
+        node.lwolves = node.parentNode->lwolves;
+        node.lboat = node.parentNode->lboat;
+        node.rchickens = node.parentNode->rchickens;
+        node.rwolves = node.parentNode->rwolves;
+        node.rboat = node.parentNode->rboat;
+        node.action = node.parentNode->action;
+        node.depth = node.parentNode->depth;
+        node.parentNode = node.parentNode->parentNode;
+
+        if(node.parentNode) break;
+    }
 }
 
 struct Node getParentNode(struct Node node)
-{
-    cout << "getParentNode" << endl;
+{//cout << "getParentNode" << endl;
     return *node.parentNode;
 }
 
-//Expands the current node to find the next fringe
-vector<Node> Expand(struct Node node, struct Node problem)
+bool isClosed(struct Node node, vector<Node> closed)
 {
-    cout << "Expand" << endl;
+    for(int i = 0; i < closed.size(); i++)
+    {
+        if(GoalTest(closed[i], node))
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
+//Expands the current node to find the next fringe
+vector<Node> Expand(struct Node node, struct Node problem, struct Node solution, vector<Node> closed)
+{//cout << "Expand" << endl;
     vector<Node> successors;
     // on side with boat
     // if -1 chicken, w>c?
@@ -172,9 +190,8 @@ vector<Node> Expand(struct Node node, struct Node problem)
 
     if (s.parentNode->rboat == 1)
     { //trues means failure, false means good action
-        printNode(*s.parentNode);
-        cout << s.parentNode->rwolves << endl;
-        cout << s.parentNode->rchickens - 1 << endl;
+        //printNode(*s.parentNode, "Expand Print");
+        //cout << "Possible Successors: " << endl;
         if (s.parentNode->rwolves <= s.parentNode->rchickens - 1 && s.parentNode->lwolves <= s.parentNode->lchickens + 1 && s.parentNode->rchickens - 1 >= 0)
         {
             s.lboat = 1;
@@ -185,10 +202,13 @@ vector<Node> Expand(struct Node node, struct Node problem)
             s.rwolves = s.parentNode->rwolves;
 
             s.action = "Moved ONE CHICKEN to the LEFT";
-            successors.push_back(s);
-            cout << s.action << endl;
+            if(!isClosed(s, closed))
+            {
+                successors.push_back(s);
+                //cout << s.action << endl;
+            }
         }
-        if (s.parentNode->rwolves <= s.parentNode->rchickens - 2 && s.parentNode->lwolves <= s.parentNode->lchickens + 2 && s.parentNode->rchickens - 2 >= 0)
+        if (((s.parentNode->rwolves <= s.parentNode->rchickens - 2 && s.parentNode->lwolves <= s.parentNode->lchickens + 2) || s.parentNode->rchickens - 2 == 0) && s.parentNode->rchickens - 2 >= 0)
         {
             s.lboat = 1;
             s.lchickens = s.parentNode->lchickens + 2;
@@ -198,8 +218,10 @@ vector<Node> Expand(struct Node node, struct Node problem)
             s.rwolves = s.parentNode->rwolves;
 
             s.action = "Moved TWO CHICKENS to the LEFT";
-            successors.push_back(s);
-            cout << s.action << endl;
+            {
+                successors.push_back(s);
+                //cout << s.action << endl;
+            }
         }
         if ((s.parentNode->lwolves + 1 <= s.parentNode->lchickens || s.parentNode->lchickens == 0) && s.parentNode->rwolves - 1 >= 0)
         {
@@ -211,8 +233,11 @@ vector<Node> Expand(struct Node node, struct Node problem)
             s.rwolves = s.parentNode->rwolves - 1;
 
             s.action = "Moved ONE WOLF to the LEFT";
-            successors.push_back(s);
-            cout << s.action << endl;
+            if(!isClosed(s, closed))
+            {
+                successors.push_back(s);
+                //cout << s.action << endl;
+            }
         }
         if (s.parentNode->lwolves + 1 <= s.parentNode->lchickens + 1 && s.parentNode->rwolves - 1 >= 0 && s.parentNode->rchickens - 1 >= 0)
         {
@@ -224,8 +249,11 @@ vector<Node> Expand(struct Node node, struct Node problem)
             s.rwolves = s.parentNode->rwolves - 1;
 
             s.action = "Moved ONE WOLF and ONE CHICKEN to the LEFT";
-            successors.push_back(s);
-            cout << s.action << endl;
+            if(!isClosed(s, closed))
+            {
+                successors.push_back(s);
+                //cout << s.action << endl;
+            }
         }
         if ((s.parentNode->lwolves + 2 <= s.parentNode->lchickens || s.parentNode->lchickens == 0 ) && s.parentNode->rwolves - 2 >= 0)
         {
@@ -237,10 +265,12 @@ vector<Node> Expand(struct Node node, struct Node problem)
             s.rwolves = s.parentNode->rwolves - 2;
 
             s.action = "Moved TWO WOLVES to the LEFT";
-            successors.push_back(s);
-            cout << s.action << endl;
+            if(!isClosed(s, closed))
+            {
+                successors.push_back(s);
+                //cout << s.action << endl;
+            }
         }
-        cout << "successors size: " << successors.size() << endl;
     }
     else
     {
@@ -254,8 +284,11 @@ vector<Node> Expand(struct Node node, struct Node problem)
             s.rwolves = s.parentNode->rwolves;
 
             s.action = "Moved ONE CHICKEN to the RIGHT";
-            successors.push_back(s);
-            //cout << s.action << endl;
+            if(!isClosed(s, closed))
+            {
+                successors.push_back(s);
+                //cout << s.action << endl;
+            }
         }
         if (s.parentNode->lwolves <= s.parentNode->lchickens - 2 && s.parentNode->rwolves <= s.parentNode->rchickens + 2 && s.parentNode->lchickens - 2 >= 0)
         {
@@ -267,8 +300,11 @@ vector<Node> Expand(struct Node node, struct Node problem)
             s.rwolves = s.parentNode->rwolves;
 
             s.action = "Moved TWO CHICKENS to the RIGHT";
-            successors.push_back(s);
-            //cout << s.action << endl;
+            if(!isClosed(s, closed))
+            {
+                successors.push_back(s);
+                //cout << s.action << endl;
+            }
         }
         if ((s.parentNode->rwolves + 1 <= s.parentNode->rchickens || s.parentNode->rchickens == 0) && s.parentNode->lwolves - 1 >= 0)
         {
@@ -280,8 +316,11 @@ vector<Node> Expand(struct Node node, struct Node problem)
             s.rwolves = s.parentNode->rwolves + 1;
 
             s.action = "Moved ONE WOLF to the RIGHT";
-            successors.push_back(s);
-            //cout << s.action << endl;
+            if(!isClosed(s, closed))
+            {
+                successors.push_back(s);
+                //cout << s.action << endl;
+            }
         }
         if (s.parentNode->rwolves + 1 <= s.parentNode->rchickens + 1 && s.parentNode->lwolves - 1 >= 0 && s.parentNode->lchickens - 1 >= 0)
         {
@@ -293,8 +332,11 @@ vector<Node> Expand(struct Node node, struct Node problem)
             s.rwolves = s.parentNode->rwolves + 1;
 
             s.action = "Moved ONE WOLF and ONE CHICKEN to the RIGHT";
-            successors.push_back(s);
-            //cout << s.action << endl;
+            if(!isClosed(s, closed))
+            {
+                successors.push_back(s);
+                //cout << s.action << endl;
+            }
         }
         if ((s.parentNode->rwolves + 2 <= s.parentNode->rchickens || s.parentNode->rchickens == 0) && s.parentNode->lwolves - 2 >= 0)
         {
@@ -306,99 +348,55 @@ vector<Node> Expand(struct Node node, struct Node problem)
             s.rwolves = s.parentNode->rwolves + 2;
 
             s.action = "Moved TWO WOLVES to the RIGHT";
-            successors.push_back(s);
-            //cout << s.action << endl;
+            if(!isClosed(s, closed))
+            {
+                successors.push_back(s);
+                //cout << s.action << endl;
+            }
         }
         // Path-Cost[s] = Path-Cast[node] + Step-Cost[node,action,s]
         // NO PATH COST FOR THESE SEARCH ALGOS
         // Depth = Depth[node] + 1
         s.depth = node.depth + 1;
-        // successors += s
     }
-
-    cout << "EXPAND TEST successors #: " << successors.size() << endl;
-
+    //cout << "successors size: " << successors.size() << endl;
     // return successors
     return successors;
 }
 
 vector<Node> InsertAll(vector<Node> expandedNode, vector<Node> fringe)
-{
-    cout << "Insert All" << endl;
-    cout << "fringeSize: " << fringe.size() << endl;
+{//cout << "Insert All" << endl;
+    //cout << "fringeSize: " << fringe.size() << endl;
     //Inserts the next fringe from the current node into the main vector pathway
     for(int i = 0; i < expandedNode.size(); i++)
     {
         fringe.push_back(expandedNode[i]);
     }
-    cout << "fringeSize: " << fringe.size() << endl;
+    //cout << "fringeSize: " << fringe.size() << endl << endl << endl;
     return fringe;
 }
 
-vector<Node> setInitialFringe()
-{
-    cout << "InitialFringe" << endl;
+vector<Node> setInitialFringe(struct Node initialState)
+{//cout << "InitialFringe" << endl;
     vector<Node> initialFringe;
 
     initialFringe.push_back(Node());
-    initialFringe[0].lchickens = 0;
-    initialFringe[0].lwolves = 0;
-    initialFringe[0].lboat = 0;
-    initialFringe[0].rchickens = 3;
-    initialFringe[0].rwolves = 3;
-    initialFringe[0].rboat = 1;
+    initialFringe[0].lchickens = initialState.lchickens;
+    initialFringe[0].lwolves = initialState.lwolves;
+    initialFringe[0].lboat = initialState.lboat;
+    initialFringe[0].rchickens = initialState.rchickens;
+    initialFringe[0].rwolves = initialState.rwolves;
+    initialFringe[0].rboat = initialState.rboat;
     initialFringe[0].action = "Creation";
     initialFringe[0].depth = 0;
-    /*for (int i = 0; i < 3; i++)
-    {
-        initialFringe.push_back(Node());
-        initialFringe[i].lboat = 0;
-        initialFringe[i].lchickens = 0;
-        initialFringe[i].lwolves = 0;
-        initialFringe[i].rboat = 0;
-        initialFringe[i].rchickens = 0;
-        initialFringe[i].rwolves = 0;
-    }
-
-    // 0 chicken, 1 wolf, 1 boat moved
-    initialFringe[0].lchickens = 0;
-    initialFringe[0].lwolves = 0;
-    initialFringe[0].lboat = 0;
-    initialFringe[0].rchickens = 3;
-    initialFringe[0].rwolves = 3;
-    initialFringe[0].rboat = 1;
-    initialFringe[0].action = "Creation";
-    initialFringe[0].depth = 0;
-    // 1 chicken, 1 wolf, 1 boat moved
-    initialFringe[1].lchickens = 1;
-    initialFringe[1].lwolves = 1;
-    initialFringe[1].lboat = 1;
-    initialFringe[1].rchickens = 2;
-    initialFringe[1].rwolves = 2;
-    initialFringe[1].rboat = 0;
-    initialFringe[1].action = "Creation";
-    initialFringe[1].depth = 0;
-    // 0 chicken, 2 wolf, 1 boat moved
-    initialFringe[2].lchickens = 0;
-    initialFringe[2].lwolves = 2;
-    initialFringe[2].lboat = 1;
-    initialFringe[2].rchickens = 3;
-    initialFringe[2].rwolves = 1;
-    initialFringe[2].rboat = 0;
-    initialFringe[2].action = "Creation";
-    initialFringe[2].depth = 0;
-*/
-    cout << initialFringe[0].action << endl;
 
     return initialFringe;
 }
 
 struct Node getNextNode(vector<Node> fringe, SearchType searchType)
-{
-    cout << "getNextNode" << endl;
+{//cout << "getNextNode" << endl;
     if (searchType == bfs)
     {
-        fringe.erase(fringe.begin());
         return fringe[0];
     }
     else
@@ -406,18 +404,15 @@ struct Node getNextNode(vector<Node> fringe, SearchType searchType)
 }
 
 void graphSearch(struct Node problem, struct Node solution, SearchType searchType)
-{
-    cout << "GraphSearch" << endl;
+{//cout << "GraphSearch" << endl;
     //empty struct Node that remembers all the nodes
     vector<Node> closed;
     // insert the initial state or node to fringe
-    vector<Node> fringe = setInitialFringe();
+    vector<Node> fringe = setInitialFringe(problem);
 
-    //for loop < 5 (only 5 possible nodes)
     while (true)
     {
         struct Node node;
-        //if fringe is empty breaks loop
         // this checks if the loop is at the end and the solution was not found
         if (fringe.empty()) // null check
         {
@@ -426,12 +421,10 @@ void graphSearch(struct Node problem, struct Node solution, SearchType searchTyp
         }
         //node = get first node from fringe // I THINK THIS IS WHERE WE CHANGE THE ALGO FOR SEARCH TYPES
         node = getNextNode(fringe, searchType);
-
-        cout << "NODE: lc: " << node.lchickens << ", lw: " << node.lwolves << ", lb: " << node.lboat << endl;
-        cout << "NODE: rc: " << node.rchickens << ", rw: " << node.rwolves << ", rb: " << node.rboat << endl;
+        printNode(node, "GraphSearch");
 
         //if Goal-Test([problem], node) return solution(node)
-        if (GoalTest(solution, node))
+        if (GoalTest(solution, node)) 
         {
             Solution(node);
             break;
@@ -439,7 +432,7 @@ void graphSearch(struct Node problem, struct Node solution, SearchType searchTyp
 
         //if node !in closed
         int closedSize = closed.size();
-        cout << "closedSize: " << closedSize << endl;
+        //cout << "closedSize: " << closedSize << endl;
         if (closedSize != 0)
         {
             for (int i = 0; i < closedSize; i++)
@@ -447,29 +440,34 @@ void graphSearch(struct Node problem, struct Node solution, SearchType searchTyp
                 if ((closed[i].lwolves == node.lwolves && closed[i].lchickens == node.lchickens) && closed[i].lboat == node.lboat)
                 {
                     cout << "Closed Contains Node Already" << endl;
-                }
-                else
+                } else 
                 {
                     //add node to closed
                     closed.push_back(node);
-                    //cout << "CLOSED: lc: " << node.lchickens << ", lw: " << node.lwolves << ", lb: " << node.lboat << endl;
-                    //cout << "CLOSED: rc: " << node.rchickens << ", rw: " << node.rwolves << ", rb: " << node.rboat << endl;
-                    //fringe <- insertall(EXPAND(node, problem), fringe)
-                    fringe = InsertAll(Expand(node, problem), fringe);
+                    
+                    //printNode(node, "NOW CLOSED");
+                    
+                    fringe.erase(fringe.begin());
+                    fringe = InsertAll(Expand(node, problem, solution, closed), fringe);
+                    /*for(int i = 0; i < fringe.size(); i++)
+                    {
+                        printNode(fringe[i], ("fringe[]"));
+                    }*/
                     break;
                 }
             }
-        }
-        else
+        } else
         {
             closed.push_back(node);
 
-            cout << "FIRST RUN THROUGH OF CLOSED:" << endl;
-            //cout << "CLOSED: lc: " << node.lchickens << ", lw: " << node.lwolves << ", lb: " << node.lboat << endl;
-            //cout << "CLOSED: rc: " << node.rchickens << ", rw: " << node.rwolves << ", rb: " << node.rboat << endl;
+            //printNode(node, "FIRST CLOSED");
 
-            //fringe <- insertall(EXPAND(node, problem), fringe)
-            fringe = InsertAll(Expand(node, problem), fringe);
+            fringe.erase(fringe.begin());
+            fringe = InsertAll(Expand(node, problem, solution, closed), fringe);
+            /*for(int i = 0; i < fringe.size(); i++)
+            {
+                printNode(fringe[i], ("initial fringe[]"));
+            }*/
         }
     }
 }
