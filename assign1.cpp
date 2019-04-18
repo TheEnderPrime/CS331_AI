@@ -52,7 +52,7 @@ struct Node
 
     bool operator<(const Node& a) const 
     {
-    return  priority >= a.priority;
+    return  priority < a.priority;
     }
 };
 
@@ -571,8 +571,7 @@ void aStar(struct Node problem, struct Node solution, char* outputFile)
     vector<Node> closed;
     vector<Node> succ;
     fringe = setInitialFringePQ(problem, solution);
-    cout << "Set initial fringe" << endl;
-    int nodes_expanded = 0;
+    cout << "Set initial fringe size: " << fringe.size() << endl;
 
     while(true)
     {
@@ -586,34 +585,35 @@ void aStar(struct Node problem, struct Node solution, char* outputFile)
         fringe.pop();
         cout << "after first pop" << endl;
         if(GoalTest(solution, node)){
-            cout << "in goal test" << endl;
-            //Solution(node, closed, problem, outputFile);
+            Solution(node, closed, problem, outputFile);
             break;
         }
-        nodes_expanded++;
+        
         if(closed.size() != 0)
         {
-            cout << "In expantion statement" << std::endl;
-            succ = Expand(node, problem, solution, closed);
-            for(int i = 0; i < succ.size(); i++)
+            cout << "In expansion statement" << std::endl;
+            for (int i = 0; i < closed.size() - 1; i++)
             {
-                succ[i] = setHeuristic(succ[i], solution);
-                fringe.push(succ[i]);
-             }
+                if ((closed[i].lwolves == node.lwolves && closed[i].lchickens == node.lchickens) && closed[i].lboat == node.lboat)
+                {
+                    cout << "Closed[] Contains Node Already" << endl;
+                } else 
+                {
+                    succ = Expand(node, problem, solution, closed);
+                    cout << "Succ size: " << succ.size() << endl;
+                    for(int i = 0; i < succ.size()-1; i++)
+                    {
+                        succ[i] = setHeuristic(succ[i], solution);
+                        fringe.push(succ[i]);
+                        closed.push_back(succ[1]);
+                    }
+                }
+            }
         }
         else
         {  
             closed.push_back(node);
-            fringe.pop();
-        }
-
-
-
-        //check to see if can move 1 chicken
-        //check to see if can move 2 chicken
-        //check to see if can move 1 wolf
-        //check to see if can move 2 wolves
-        //check to see if can move 1 chicken and 1 wolf        
+        }     
     }
 }
 
