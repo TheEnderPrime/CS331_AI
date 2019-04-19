@@ -6,6 +6,16 @@
 #include <queue>
 #include <stdlib.h>
 
+/*****************************
+ * David Baugh
+ * Travis Larson
+ * 
+ * Assignment 1
+ * 
+ * 4/19/19
+ * 
+ *****************************/
+
 //MAKE : MinGW32-make
 //MAKE RUN : MinGW32-make dfs
 //COMPILE : g++ -o assign1 assign1.cpp 
@@ -52,7 +62,7 @@ struct Node
 
     bool operator<(const Node& a) const 
     {
-    return  priority < a.priority;
+        return  priority < a.priority;
     }
 };
 
@@ -65,12 +75,14 @@ enum SearchType
     error
 };
 
+// Prints chickens, wolves, and boats within the node
 void printNode(struct Node node, string functionName)
 {
     cout << functionName << "lc: " << node.lchickens << ", lw: " << node.lwolves << ", lb: " << node.lboat << endl;
     cout << functionName << "rc: " << node.rchickens << ", rw: " << node.rwolves << ", rb: " << node.rboat << endl;
 }
 
+// Pulls data from a file
 struct Node getStateFromFile(char *file)
 {
     struct Node state;
@@ -105,6 +117,7 @@ struct Node getStateFromFile(char *file)
     return state;
 }
 
+// Sets the enum value from the matching string
 SearchType getEnumValue(string searchTypeString)
 {
     if(searchTypeString == "bfs")
@@ -138,46 +151,40 @@ bool GoalTest(struct Node solution, struct Node node)
                     {
                         if (solution.rboat == node.rboat)
                         {
-                            cout << "1" << endl;
                             return true;
                         }
                         else
                         {
-                            cout << "2" << endl;
                             return false;
                         }
                     }
                     else
                     {
-                        cout << "3" << endl;
                         return false;
                     }
                 }
                 else
                 {
-                    cout << "4" << endl;
                     return false;
                 }
             }
             else
             {
-                cout << "5" << endl;
                 return false;
             }
         }
         else
         {
-            cout << "6" << endl;
             return false;
         }
     }
     else
     {
-        cout << "7" << endl;
         return false;
     }
 }
 
+// Writes solution to output file and prints solution to screen
 void Solution(struct Node node, vector<Node> closed, struct Node problem, char *outputFile)
 {
     cout << "SOLUTION FOUND! " << endl; //Prints out the solution and pathway to it
@@ -216,6 +223,7 @@ void Solution(struct Node node, vector<Node> closed, struct Node problem, char *
 
 }
 
+// checks if the given node is within the closed array and as such has already been referenced before
 bool isClosed(struct Node node, vector<Node> closed)
 {
     for(int i = 0; i < closed.size(); i++)
@@ -431,6 +439,7 @@ vector<Node> Expand(struct Node node, struct Node problem, struct Node solution,
     return successors;
 }
 
+// Adds the expanded nodes to the fringe either in front or back based on the searchType
 vector<Node> InsertAll(vector<Node> expandedNode, vector<Node> fringe, SearchType searchType)
 {
     //Inserts the next fringe from the current node into the main vector pathway
@@ -453,6 +462,7 @@ vector<Node> InsertAll(vector<Node> expandedNode, vector<Node> fringe, SearchTyp
     return fringe;
 }
 
+// Sets the first fringe with the first Node
 vector<Node> setInitialFringe(struct Node initialState)
 {
     vector<Node> initialFringe;
@@ -470,6 +480,7 @@ vector<Node> setInitialFringe(struct Node initialState)
     return initialFringe;
 }
 
+// The main function that loops through and completes a certain search functionality based on the given enum
 void graphSearch(struct Node problem, struct Node solution, SearchType searchType, char *outputFile)
 {
     //empty struct Node that remembers all the nodes ever touched
@@ -538,7 +549,8 @@ void graphSearch(struct Node problem, struct Node solution, SearchType searchTyp
     }
 }
 
-
+// A* 
+// Sets the Heuristic based on the priority given by the solution and current node
 struct Node setHeuristic(struct Node node, struct Node solution)
 {
     node.priority = abs(solution.lwolves - node.lwolves) + abs(solution.lchickens - node.lchickens);
@@ -548,6 +560,7 @@ struct Node setHeuristic(struct Node node, struct Node solution)
     return node;
 }
 
+// Sets the initial fringe including the A* logic for Heuristics
 priority_queue<Node> setInitialFringePQ(struct Node initialState, struct Node solution)
 {//cout << "InitialFringe" << endl;
     priority_queue<Node> initialFringe;
@@ -563,6 +576,7 @@ priority_queue<Node> setInitialFringePQ(struct Node initialState, struct Node so
     return initialFringe;
 }
 
+// Main logic for A*
 void aStar(struct Node problem, struct Node solution, char* outputFile)
 {
     cout << "In A*" << endl;
@@ -617,8 +631,6 @@ void aStar(struct Node problem, struct Node solution, char* outputFile)
     }
 }
 
-
-
 int main(int argc, char *argv[])
 {
     cout << "Assignment 1 - baughd" << endl;
@@ -643,13 +655,9 @@ int main(int argc, char *argv[])
     }
     else{
     // Complete Search - eventually should run each different search type
-    graphSearch(initialState, solutionState, searchType, outputFile);
+        graphSearch(initialState, solutionState, searchType, outputFile);
     }   
     cout << "Done" << endl;
 
-    //look at last node
-    //find fringe (the children nodes)
-    //go to next node (depends on search type)
-    //
     return 0;
 }
